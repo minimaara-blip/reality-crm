@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RealityCRM</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F3EE;
+  --surface: #FDFCFA;
+  --surface2: #F0EDE7;
+  --border: #E2DDD6;
+  --border2: #D0C9BF;
+  --text: #1A1814;
+  --text2: #6B6560;
+  --text3: #A09890;
+  --accent: #2D5016;
+  --accent-light: #EBF2E3;
+  --accent-mid: #4A7C2A;
+  --red: #C0392B;
+  --red-light: #FDEEEC;
+  --amber: #B7620A;
+  --amber-light: #FEF3E4;
+  --blue: #1A4A8C;
+  --blue-light: #E8EFF9;
+  --purple: #5B3B8C;
+  --purple-light: #F0EBF9;
+  --sidebar-w: 220px;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+/* LAYOUT */
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: var(--sidebar-w); min-width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+.main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+.page-content { padding: 28px; flex: 1; }
+
+/* SIDEBAR */
+.sidebar-header { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+.logo { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+.logo-sub { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: 'DM Mono', monospace; }
+.sidebar-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+.nav-section { font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 10px 4px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; color: var(--text2); font-size: 13px; font-weight: 400; transition: all 0.15s; position: relative; }
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+.nav-badge { margin-left: auto; background: var(--red); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px; }
+.sidebar-footer { padding: 14px 20px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text3); }
+
+/* TOPBAR */
+.page-title { font-size: 16px; font-weight: 600; color: var(--text); }
+.page-desc { font-size: 12px; color: var(--text3); margin-top: 1px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border2); background: var(--surface); color: var(--text); cursor: pointer; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+.btn:hover { background: var(--surface2); border-color: var(--border2); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-mid); border-color: var(--accent-mid); }
+.btn-danger { background: var(--red); color: #fff; border-color: var(--red); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* SCREENS */
+.screen { display: none; }
+.screen.active { display: block; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* METRICS */
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; }
+.metric-label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.metric-value { font-size: 28px; font-weight: 600; color: var(--text); line-height: 1; }
+.metric-sub { font-size: 12px; color: var(--text2); margin-top: 5px; }
+.metric-card.accent { background: var(--accent-light); border-color: #C5DBA8; }
+.metric-card.accent .metric-value { color: var(--accent); }
+
+/* CARDS */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 18px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.card-count { font-size: 11px; color: var(--text3); background: var(--surface2); padding: 2px 8px; border-radius: 10px; }
+
+/* TASKS */
+.task-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; margin-bottom: 4px; background: var(--surface2); transition: background 0.1s; }
+.task-item:hover { background: #EAE6DF; }
+.task-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-red { background: var(--red); }
+.dot-amber { background: var(--amber); }
+.dot-green { background: var(--accent-mid); }
+.task-text { flex: 1; font-size: 13px; color: var(--text); }
+.task-client { font-size: 11px; color: var(--blue); background: var(--blue-light); padding: 2px 7px; border-radius: 5px; }
+.task-date { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.task-done { text-decoration: line-through; color: var(--text3) !important; }
+.task-check { width: 16px; height: 16px; border: 1.5px solid var(--border2); border-radius: 4px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; transition: all 0.1s; }
+.task-check.checked { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* PIPELINE */
+.pipeline-wrap { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; overflow-x: auto; }
+.pipeline-col { min-width: 150px; }
+.pipe-header { font-size: 11px; font-weight: 600; padding: 7px 12px; border-radius: 7px 7px 0 0; text-align: center; }
+.pipe-body { background: var(--surface2); border-radius: 0 0 7px 7px; padding: 8px; min-height: 100px; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--border); border-top: none; }
+.deal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.15s; }
+.deal-card:hover { border-color: var(--border2); transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,0.06); }
+.deal-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.deal-prop { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.deal-price { font-size: 11px; color: var(--accent); font-weight: 500; margin-top: 4px; font-family: 'DM Mono', monospace; }
+.ph1 { background: var(--blue-light); color: var(--blue); }
+.ph2 { background: var(--purple-light); color: var(--purple); }
+.ph3 { background: var(--amber-light); color: var(--amber); }
+.ph4 { background: #FEF0E4; color: #9A4B0A; }
+.ph5 { background: var(--red-light); color: var(--red); }
+.ph6 { background: var(--accent-light); color: var(--accent); }
+
+/* CLIENT LIST */
+.list-table { width: 100%; border-collapse: collapse; }
+.list-table th { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+.list-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.list-table tr:last-child td { border-bottom: none; }
+.list-table tr:hover td { background: var(--surface2); }
+.avatar { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.av-g { background: var(--accent-light); color: var(--accent); }
+.av-b { background: var(--blue-light); color: var(--blue); }
+.av-p { background: var(--purple-light); color: var(--purple); }
+.av-r { background: var(--red-light); color: var(--red); }
+.av-a { background: var(--amber-light); color: var(--amber); }
+.client-name-cell { display: flex; align-items: center; gap: 10px; }
+.client-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.client-sub { font-size: 11px; color: var(--text3); }
+.tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 5px; }
+.tag-buy { background: var(--blue-light); color: var(--blue); }
+.tag-sell { background: var(--amber-light); color: var(--amber); }
+.tag-both { background: var(--purple-light); color: var(--purple); }
+.tag-active { background: var(--accent-light); color: var(--accent); }
+.tag-res { background: var(--amber-light); color: var(--amber); }
+.tag-sold { background: var(--surface2); color: var(--text3); }
+.tag-pend { background: var(--amber-light); color: var(--amber); }
+.tag-done { background: var(--accent-light); color: var(--accent); }
+.tag-new { background: var(--red-light); color: var(--red); }
+.link-btn { background: none; border: none; color: var(--blue); cursor: pointer; font-size: 12px; font-family: 'DM Sans', sans-serif; padding: 4px 8px; border-radius: 5px; }
+.link-btn:hover { background: var(--blue-light); }
+
+/* PROPERTY GRID */
+.prop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.prop-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: all 0.15s; }
+.prop-card:hover { border-color: var(--border2); box-shadow: 0 4px 12px rgba(0,0,0,0.07); transform: translateY(-2px); }
+.prop-img { height: 110px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 40px; border-bottom: 1px solid var(--border); }
+.prop-body { padding: 14px; }
+.prop-addr { font-size: 13px; font-weight: 600; color: var(--text); }
+.prop-type { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.prop-price { font-size: 15px; font-weight: 600; color: var(--accent); margin-top: 8px; font-family: 'DM Mono', monospace; }
+.prop-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.prop-client { font-size: 11px; color: var(--text2); }
+
+/* INBOX */
+.inbox-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 12px; transition: all 0.15s; }
+.inbox-item.unread { border-left: 3px solid var(--red); }
+.inbox-item.processed { opacity: 0.55; }
+.inbox-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.inbox-from { font-size: 12px; font-weight: 600; color: var(--text); }
+.inbox-time { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; margin-left: auto; }
+.inbox-new-badge { background: var(--red); color: #fff; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+.inbox-text { font-size: 13px; color: var(--text); line-height: 1.5; margin-bottom: 10px; }
+.inbox-photo { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.inbox-thumb { width: 70px; height: 52px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.inbox-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.inbox-assign { display: flex; align-items: center; gap: 6px; }
+.inbox-select { font-size: 12px; padding: 5px 10px; border: 1px solid var(--border2); border-radius: 6px; background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; cursor: pointer; }
+
+/* FINANCE */
+.finance-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.finance-row:last-child { border-bottom: none; }
+.finance-row:hover { background: var(--surface2); }
+.fin-name { flex: 1; font-size: 13px; color: var(--text); font-weight: 500; }
+.fin-prop { font-size: 11px; color: var(--text3); }
+.fin-amount { font-size: 14px; font-weight: 600; font-family: 'DM Mono', monospace; }
+.fin-pending { color: var(--amber); }
+.fin-done { color: var(--accent); }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 500; display: none; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; animation: modalIn 0.2s ease; }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+.modal-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 20px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; display: block; }
+.form-input, .form-select, .form-textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border2); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; transition: border 0.15s; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* PIN PAGE */
+.pin-page { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
+.pin-page.open { display: flex; }
+.pin-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; width: 400px; max-width: 95vw; }
+.pin-title { font-size: 20px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.pin-sub { font-size: 13px; color: var(--text3); margin-bottom: 24px; }
+
+/* BOSS PAGE */
+.boss-page { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: none; flex-direction: column; align-items: center; padding: 40px 20px; overflow-y: auto; }
+.boss-page.open { display: flex; }
+.boss-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; width: 500px; max-width: 100%; }
+.boss-title { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.boss-sub { font-size: 13px; color: var(--text3); margin-bottom: 24px; }
+.file-drop { border: 2px dashed var(--border2); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; color: var(--text3); font-size: 13px; margin-bottom: 14px; transition: all 0.15s; }
+.file-drop:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.file-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.file-thumb { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+
+/* TABS */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.tab { padding: 10px 16px; font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* SEARCH */
+.search-bar { display: flex; align-items: center; gap: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-bottom: 18px; }
+.search-bar input { background: none; border: none; outline: none; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); flex: 1; }
+.search-bar input::placeholder { color: var(--text3); }
+
+/* STAT BAR */
+.stat-bar { display: flex; gap: 0; border-radius: 6px; overflow: hidden; height: 8px; margin: 8px 0; }
+.stat-seg { height: 100%; transition: width 0.3s; }
+
+/* EMPTY */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text3); }
+.empty-icon { font-size: 36px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; }
+
+/* NOTIFICATION */
+.notif { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: var(--surface); padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 2000; transform: translateY(80px); opacity: 0; transition: all 0.3s; pointer-events: none; }
+.notif.show { transform: translateY(0); opacity: 1; }
+
+/* DETAIL PANEL */
+.detail-panel { position: fixed; right: 0; top: 0; width: 420px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); z-index: 200; transform: translateX(100%); transition: transform 0.25s ease; overflow-y: auto; padding: 24px; }
+.detail-panel.open { transform: translateX(0); }
+.panel-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text3); }
+.panel-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 4px; margin-top: 4px; }
+.panel-section { margin-top: 20px; }
+.panel-section-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+.info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.info-row:last-child { border-bottom: none; }
+.info-key { color: var(--text3); }
+.info-val { color: var(--text); font-weight: 500; text-align: right; }
+.note-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); resize: vertical; min-height: 80px; outline: none; }
+.note-input:focus { border-color: var(--accent); }
+.note-entry { background: var(--surface2); border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 12px; }
+.note-date { color: var(--text3); font-family: 'DM Mono', monospace; font-size: 10px; margin-bottom: 4px; }
+
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .main { margin-left: 0; }
+  .metrics-grid { grid-template-columns: repeat(2,1fr); }
+  .prop-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel" id="detailPanel">
+  <button class="panel-close" onclick="closePanel()">✕</button>
+  <div id="panelContent"></div>
+</div>
+
+<!-- MODAL: Add Client -->
+<div class="modal-overlay" id="modal-client" onclick="if(event.target===this)closeModal('modal-client')">
+<div class="modal">
+  <div class="modal-title">Přidat klienta</div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Jméno *</label><input class="form-input" id="c-name" placeholder="Jan Novák"></div>
+    <div class="form-group"><label class="form-label">Telefon *</label><input class="form-input" id="c-phone" placeholder="+420 ..."></div>
+  </div>
+  <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="c-email" placeholder="jan@email.cz"></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Typ klienta</label>
+      <select class="form-select" id="c-type">
+        <option value="kupující">Kupující</option>
+        <option value="prodávající">Prodávající</option>
+        <option value="obojí">Obojí</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Zdroj</label>
+      <select class="form-select" id="c-source">
+        <option>Doporučení</option><option>Inzerát</option><option>Šéf</option><option>Web</option><option>Jiné</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Poznámka</label><textarea class="form-textarea" id="c-note" placeholder="Co hledá, požadavky..."></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('modal-client')">Zrušit</button><button class="btn btn-primary" onclick="saveClient()">Uložit klienta</button></div>
+</div></div>
+
+<!-- MODAL: Add Property -->
+<div class="modal-overlay" id="modal-prop" onclick="if(event.target===this)closeModal('modal-prop')">
+<div class="modal">
+  <div class="modal-title">Přidat nemovitost</div>
+  <div class="form-group"><label class="form-label">Adresa *</label><input class="form-input" id="p-addr" placeholder="Mánesova 12, Pardubice"></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Typ</label>
+      <select class="form-select" id="p-type"><option>Byt</option><option>Dům</option><option>Pozemek</option><option>Komerční</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">Dispozice</label><input class="form-input" id="p-disp" placeholder="3+kk"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Cena (Kč)</label><input class="form-input" id="p-price" type="number" placeholder="3500000"></div>
+    <div class="form-group"><label class="form-label">Stav</label>
+      <select class="form-select" id="p-status"><option value="aktivní">Aktivní</option><option value="rezervace">Rezervace</option><option value="prodáno">Prodáno</option></select>
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Majitel (klient)</label>
+    <select class="form-select" id="p-owner"><option value="">— nevybráno —</option></select>
+  </div>
+  <div class="form-group"><label class="form-label">Poznámka</label><textarea class="form-textarea" id="p-note" placeholder="Stav, vybavení, poznámky..."></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('modal-prop')">Zrušit</button><button class="btn btn-primary" onclick="saveProperty()">Uložit nemovitost</button></div>
+</div></div>
+
+<!-- MODAL: Add Deal -->
+<div class="modal-overlay" id="modal-deal" onclick="if(event.target===this)closeModal('modal-deal')">
+<div class="modal">
+  <div class="modal-title">Přidat obchodní případ</div>
+  <div class="form-group"><label class="form-label">Klient *</label><select class="form-select" id="d-client"><option value="">— vyberte klienta —</option></select></div>
+  <div class="form-group"><label class="form-label">Nemovitost *</label><select class="form-select" id="d-prop"><option value="">— vyberte nemovitost —</option></select></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Fáze</label>
+      <select class="form-select" id="d-stage">
+        <option value="0">Nový kontakt</option><option value="1">Schůzka</option><option value="2">Aktivní hledání</option>
+        <option value="3">Nabídka</option><option value="4">Rezervace</option><option value="5">Smlouva/Podpis</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Provize (Kč)</label><input class="form-input" id="d-comm" type="number" placeholder="84000"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Poznámka</label><textarea class="form-textarea" id="d-note"></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('modal-deal')">Zrušit</button><button class="btn btn-primary" onclick="saveDeal()">Uložit případ</button></div>
+</div></div>
+
+<!-- MODAL: Add Task -->
+<div class="modal-overlay" id="modal-task" onclick="if(event.target===this)closeModal('modal-task')">
+<div class="modal">
+  <div class="modal-title">Přidat úkol</div>
+  <div class="form-group"><label class="form-label">Popis úkolu *</label><input class="form-input" id="t-text" placeholder="Co je potřeba udělat?"></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Priorita</label>
+      <select class="form-select" id="t-prio"><option value="red">🔴 Hoří</option><option value="amber">🟡 Normální</option><option value="green">🟢 Až bude čas</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">Datum</label><input class="form-input" id="t-date" type="date"></div>
+  </div>
+  <div class="form-group"><label class="form-label">Přiřadit klientovi</label>
+    <select class="form-select" id="t-client"><option value="">— obecný úkol —</option></select>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('modal-task')">Zrušit</button><button class="btn btn-primary" onclick="saveTask()">Přidat úkol</button></div>
+</div></div>
+
+<!-- PIN PAGE -->
+<div class="pin-page" id="pinPage">
+  <div class="pin-box">
+    <div class="pin-title">Vstup šéfa</div>
+    <div class="pin-sub">Zadej PIN pro přístup k odesílání úkolů</div>
+    <div class="form-group"><label class="form-label">PIN</label><input class="form-input" id="pinInput" type="password" placeholder="••••" maxlength="6"></div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-primary" onclick="checkPin()" style="flex:1">Vstoupit</button>
+      <button class="btn" onclick="document.getElementById('pinPage').classList.remove('open')">Zpět</button>
+    </div>
+    <div style="margin-top:14px;font-size:11px;color:var(--text3)">Výchozí PIN: 1234</div>
+  </div>
+</div>
+
+<!-- BOSS INBOX PAGE -->
+<div class="boss-page" id="bossPage">
+  <div class="boss-box">
+    <div class="boss-title">Úkoly pro asistenta</div>
+    <div class="boss-sub">Napiš co je potřeba. Asistent si to zpracuje.</div>
+    <div class="form-group"><label class="form-label">Zpráva / úkol *</label><textarea class="form-textarea" id="boss-text" placeholder="Zavolej tomu páru z pondělí..." style="min-height:100px;"></textarea></div>
+    <div class="file-drop" onclick="document.getElementById('boss-file').click()">
+      📷 Klikni nebo přetáhni fotky sem
+    </div>
+    <input type="file" id="boss-file" multiple accept="image/*" style="display:none" onchange="handleBossFiles(this)">
+    <div class="file-list" id="boss-file-list"></div>
+    <div class="form-group"><label class="form-label">Klient (nepovinné)</label><input class="form-input" id="boss-client" placeholder="Jméno klienta nebo číslo..."></div>
+    <div class="form-group"><label class="form-label">Deadline (nepovinné)</label><input class="form-input" id="boss-deadline" type="date"></div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-primary" onclick="submitBossTask()" style="flex:1">Odeslat úkol</button>
+      <button class="btn" onclick="document.getElementById('bossPage').classList.remove('open');document.getElementById('pinPage').classList.remove('open')">Zpět</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">RealityCRM</div>
+      <div class="logo-sub">osobní asistent</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">Přehled</div>
+      <div class="nav-item active" onclick="showScreen('dashboard',this)"><span class="nav-icon">◧</span> Dashboard</div>
+      <div class="nav-item" onclick="showScreen('inbox',this)" id="nav-inbox"><span class="nav-icon">◎</span> Inbox šéfa <span class="nav-badge" id="inbox-badge">0</span></div>
+      <div class="nav-section">Práce</div>
+      <div class="nav-item" onclick="showScreen('clients',this)"><span class="nav-icon">◯</span> Klienti</div>
+      <div class="nav-item" onclick="showScreen('properties',this)"><span class="nav-icon">⌂</span> Nemovitosti</div>
+      <div class="nav-item" onclick="showScreen('pipeline',this)"><span class="nav-icon">⇢</span> Pipeline</div>
+      <div class="nav-item" onclick="showScreen('tasks',this)"><span class="nav-icon">✓</span> Úkoly</div>
+      <div class="nav-section">Finance</div>
+      <div class="nav-item" onclick="showScreen('finance',this)"><span class="nav-icon">◈</span> Provize</div>
+      <div class="nav-section">Šéf</div>
+      <div class="nav-item" onclick="openBossPin()"><span class="nav-icon">↗</span> Vstup šéfa</div>
+    </div>
+    <div class="sidebar-footer">v1.0 · data v prohlížeči</div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div id="topbarTitle">
+        <div class="page-title">Dashboard</div>
+        <div class="page-desc" id="topbarDesc">Přehled dne</div>
+      </div>
+      <div class="topbar-right" id="topbarActions"></div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- DASHBOARD -->
+      <div class="screen active" id="screen-dashboard">
+        <div class="metrics-grid" id="dash-metrics"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+          <div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Dnešní úkoly</div><span class="card-count" id="dash-task-count">0</span></div>
+              <div id="dash-tasks"></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Inbox šéfa — nezpracované</div><span class="card-count" id="dash-inbox-count">0</span></div>
+              <div id="dash-inbox"></div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Pipeline přehled</div></div>
+              <div id="dash-pipeline"></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Provize v pipeline</div></div>
+              <div id="dash-finance"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INBOX -->
+      <div class="screen" id="screen-inbox">
+        <div class="tabs">
+          <div class="tab active" onclick="filterInbox('all',this)">Vše</div>
+          <div class="tab" onclick="filterInbox('unread',this)">Nezpracované</div>
+          <div class="tab" onclick="filterInbox('done',this)">Zpracované</div>
+        </div>
+        <div id="inbox-list"></div>
+      </div>
+
+      <!-- CLIENTS -->
+      <div class="screen" id="screen-clients">
+        <div class="search-bar"><span style="color:var(--text3)">⌕</span><input id="client-search" placeholder="Hledat klienta..." oninput="renderClients()"></div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          <table class="list-table"><thead><tr><th>Klient</th><th>Telefon</th><th>Typ</th><th>Stav / poznámka</th><th>Zdroj</th><th></th></tr></thead>
+          <tbody id="clients-tbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- PROPERTIES -->
+      <div class="screen" id="screen-properties">
+        <div class="tabs">
+          <div class="tab active" onclick="filterProps('all',this)">Vše</div>
+          <div class="tab" onclick="filterProps('aktivní',this)">Aktivní</div>
+          <div class="tab" onclick="filterProps('rezervace',this)">Rezervace</div>
+          <div class="tab" onclick="filterProps('prodáno',this)">Prodáno</div>
+        </div>
+        <div class="prop-grid" id="prop-grid"></div>
+      </div>
+
+      <!-- PIPELINE -->
+      <div class="screen" id="screen-pipeline">
+        <div class="pipeline-wrap" id="pipeline-board"></div>
+      </div>
+
+      <!-- TASKS -->
+      <div class="screen" id="screen-tasks">
+        <div class="tabs">
+          <div class="tab active" onclick="filterTasks('all',this)">Všechny</div>
+          <div class="tab" onclick="filterTasks('red',this)">🔴 Hoří</div>
+          <div class="tab" onclick="filterTasks('amber',this)">🟡 Normální</div>
+          <div class="tab" onclick="filterTasks('green',this)">🟢 Až bude čas</div>
+          <div class="tab" onclick="filterTasks('done',this)">Hotové</div>
+        </div>
+        <div class="card" id="tasks-list"></div>
+      </div>
+
+      <!-- FINANCE -->
+      <div class="screen" id="screen-finance">
+        <div class="metrics-grid" id="fin-metrics" style="grid-template-columns:repeat(3,1fr);"></div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Přehled provizí</div></div>
+          <div id="fin-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const STORE_KEY = 'reality_crm_v1';
+let state = {
+  clients: [
+    {id:1,name:'Martin Novák',phone:'+420 777 123 456',email:'novak@email.cz',type:'kupující',source:'Doporučení',note:'Hledá 3+kk Pardubice, max 4M. Prohlídka proběhla, čeká na rozhodnutí.',notes:[]},
+    {id:2,name:'Lucie Horáková',phone:'+420 602 987 654',email:'horakova@seznam.cz',type:'prodávající',source:'Inzerát',note:'Prodej bytu Mánesova 12. Smlouva v přípravě.',notes:[]},
+    {id:3,name:'Pavel Kopecký',phone:'+420 731 456 789',email:'',type:'kupující',source:'Web',note:'Hledá rodinný dům, okolí Pardubic. 2 týdny bez kontaktu.',notes:[]},
+    {id:4,name:'Jana Nováková',phone:'+420 608 234 567',email:'jana.novakova@gmail.com',type:'obojí',source:'Šéf',note:'Koupě 2+kk centrum + prodej vlastního 2+kk.',notes:[]},
+    {id:5,name:'Tomáš Říha',phone:'+420 777 888 999',email:'riha@firma.cz',type:'prodávající',source:'Doporučení',note:'Prodej domu Lipová 22. Schůzka pondělí.',notes:[]}
+  ],
+  properties: [
+    {id:1,addr:'Mánesova 12, Pardubice',type:'Byt',disp:'2+kk',price:3200000,status:'aktivní',owner:2,note:'Patro 3/5, lodžie, garáž'},
+    {id:2,addr:'Botanická 7, Pardubice',type:'Byt',disp:'3+kk',price:4750000,status:'aktivní',owner:0,note:'Novostavba, skvělá lokalita'},
+    {id:3,addr:'Zahradní 3, Chrudim',type:'Dům',disp:'5+1',price:5100000,status:'rezervace',owner:0,note:'Zahrada 600m2, garáž pro 2 auta'},
+    {id:4,addr:'Lipová 22, Pardubice',type:'Dům',disp:'4+kk',price:6200000,status:'aktivní',owner:5,note:'Rohový dům, velká zahrada'}
+  ],
+  deals: [
+    {id:1,clientId:3,propId:2,stage:0,commission:0,note:'Aktivní hledání',notes:[]},
+    {id:2,clientId:5,propId:4,stage:1,commission:186000,note:'Schůzka pondělí',notes:[]},
+    {id:3,clientId:1,propId:2,stage:3,commission:142500,note:'Nabídka odeslána',notes:[]},
+    {id:4,clientId:4,propId:1,stage:3,commission:96000,note:'Čeká na vyjádření',notes:[]},
+    {id:5,clientId:0,propId:3,stage:4,commission:153000,note:'Rezervační smlouva podepsána',notes:[]},
+    {id:6,clientId:2,propId:1,stage:5,commission:96000,note:'Smlouva v přípravě',notes:[]}
+  ],
+  tasks: [
+    {id:1,text:'Zavolat Novákům — výsledek prohlídky',prio:'red',date:'2026-04-01',done:false,clientId:1},
+    {id:2,text:'Odeslat návrh smlouvy — Horák',prio:'red',date:'2026-04-01',done:false,clientId:2},
+    {id:3,text:'Nafotit byt Mánesova 12',prio:'amber',date:'2026-04-02',done:false,clientId:0},
+    {id:4,text:'Follow-up Kopecký (2 týdny ticho)',prio:'amber',date:'2026-04-02',done:false,clientId:3},
+    {id:5,text:'Přepsat inzerát Botanická 7',prio:'green',date:'2026-04-05',done:false,clientId:0},
+    {id:6,text:'Doručit podklady — Lipová 22',prio:'red',date:'2026-04-03',done:false,clientId:5}
+  ],
+  inbox: [
+    {id:1,text:'Koukni na ten byt v Pardubičkách co mi poslali, mám k tomu foto. Vypadá zajímavě.',time:'dnes 11:42',hasPhoto:true,processed:false,clientHint:'',deadline:''},
+    {id:2,text:'Zavolej tomu páru z minulého týdne — Novotní nebo jak se jmenujou. Chtěli vědět jestli ještě máme Zahradní 3.',time:'dnes 9:15',hasPhoto:false,processed:false,clientHint:'Novotní',deadline:''},
+    {id:3,text:'Připrav podklady pro pondělní schůzku s majitelem domu Lipová 22. Katastr, odhadní cena, srovnání trhu.',time:'včera 17:03',hasPhoto:false,processed:false,clientHint:'Tomáš Říha',deadline:'2026-04-07'},
+    {id:4,text:'Připomeň mi zavolat Horákovým ohledně podpisu.',time:'pondělí',hasPhoto:false,processed:true,clientHint:'Lucie Horáková',deadline:''}
+  ],
+  nextId: {client:6,prop:5,deal:7,task:7,inbox:5}
+};
+
+function load() {
+  try { const s = localStorage.getItem(STORE_KEY); if(s) state = JSON.parse(s); } catch(e){}
+  updateBadge();
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){}
+}
+function notify(msg) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 2800);
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+const titles = {dashboard:'Dashboard',inbox:'Inbox šéfa',clients:'Klienti',properties:'Nemovitosti',pipeline:'Pipeline',tasks:'Úkoly',finance:'Provize'};
+const descs = {dashboard:'Přehled dne',inbox:'Úkoly od šéfa',clients:'Správa klientů',properties:'Evidence nemovitostí',pipeline:'Obchodní případy',tasks:'Moje úkoly',finance:'Přehled provizí'};
+const actions = {
+  dashboard:'',
+  inbox:'',
+  clients:'<button class="btn btn-primary" onclick="openModal(\'modal-client\')">+ Přidat klienta</button>',
+  properties:'<button class="btn btn-primary" onclick="openModalProp()">+ Přidat nemovitost</button>',
+  pipeline:'<button class="btn btn-primary" onclick="openModalDeal()">+ Přidat případ</button>',
+  tasks:'<button class="btn btn-primary" onclick="openModalTask()">+ Přidat úkol</button>',
+  finance:'<button class="btn btn-primary" onclick="openModalDeal()">+ Přidat případ</button>'
+};
+let currentScreen = 'dashboard';
+let inboxFilter = 'all', propFilter = 'all', taskFilter = 'all';
+
+function showScreen(id, el) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  el.classList.add('active');
+  currentScreen = id;
+  document.querySelector('.page-title').textContent = titles[id]||id;
+  document.getElementById('topbarDesc').textContent = descs[id]||'';
+  document.getElementById('topbarActions').innerHTML = actions[id]||'';
+  closePanel();
+  render(id);
+}
+
+function render(id) {
+  if(id==='dashboard') renderDashboard();
+  else if(id==='inbox') renderInbox();
+  else if(id==='clients') renderClients();
+  else if(id==='properties') renderProperties();
+  else if(id==='pipeline') renderPipeline();
+  else if(id==='tasks') renderTasks();
+  else if(id==='finance') renderFinance();
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const unread = state.inbox.filter(i=>!i.processed).length;
+  const todayTasks = state.tasks.filter(t=>!t.done && t.date<=today());
+  const pending = state.deals.filter(d=>d.stage<5).reduce((s,d)=>s+d.commission,0);
+  const done = state.deals.filter(d=>d.stage===5).reduce((s,d)=>s+d.commission,0);
+  document.getElementById('dash-metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Aktivní klienti</div><div class="metric-value">${state.clients.length}</div></div>
+    <div class="metric-card"><div class="metric-label">Případy v pipeline</div><div class="metric-value">${state.deals.length}</div></div>
+    <div class="metric-card accent"><div class="metric-label">Čeká na provizi</div><div class="metric-value">${fmt(pending)}</div><div class="metric-sub">Kč</div></div>
+    <div class="metric-card"><div class="metric-label">Inbox šéfa</div><div class="metric-value" style="color:${unread>0?'var(--red)':'var(--text)'}">${unread}</div><div class="metric-sub">nezpracovaných</div></div>`;
+
+  const today_ = today();
+  const taskHtml = todayTasks.slice(0,5).map(t=>`
+    <div class="task-item">
+      <div class="task-dot dot-${t.prio}"></div>
+      <div class="task-text">${esc(t.text)}</div>
+      ${t.clientId?`<span class="task-client">${clientName(t.clientId)}</span>`:''}
+    </div>`).join('') || '<div style="color:var(--text3);font-size:13px;padding:8px">Žádné úkoly na dnes 🎉</div>';
+  document.getElementById('dash-tasks').innerHTML = taskHtml;
+  document.getElementById('dash-task-count').textContent = todayTasks.length;
+
+  const inboxHtml = state.inbox.filter(i=>!i.processed).slice(0,3).map(i=>`
+    <div class="task-item">
+      <div class="task-dot dot-red"></div>
+      <div class="task-text">${esc(i.text.substring(0,70))}${i.text.length>70?'…':''}</div>
+      <span class="task-date">${i.time}</span>
+    </div>`).join('') || '<div style="color:var(--text3);font-size:13px;padding:8px">Žádné nové zprávy</div>';
+  document.getElementById('dash-inbox').innerHTML = inboxHtml;
+  document.getElementById('dash-inbox-count').textContent = unread;
+
+  const stages = ['Nový','Schůzka','Hledání','Nabídka','Rezervace','Smlouva'];
+  const pipeHtml = stages.map((s,i)=>{
+    const cnt = state.deals.filter(d=>d.stage===i).length;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text2)">${s}</span><span style="font-weight:600;color:var(--text)">${cnt}</span></div>`;
+  }).join('');
+  document.getElementById('dash-pipeline').innerHTML = pipeHtml;
+
+  document.getElementById('dash-finance').innerHTML = `
+    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">V pipeline (čeká)</span><span style="font-weight:600;color:var(--amber)">${fmt(pending)} Kč</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;"><span style="color:var(--text2)">Uzavřeno</span><span style="font-weight:600;color:var(--accent)">${fmt(done)} Kč</span></div>`;
+}
+
+// ─── INBOX ────────────────────────────────────────────────────────────────────
+function updateBadge() {
+  const cnt = state.inbox.filter(i=>!i.processed).length;
+  document.getElementById('inbox-badge').textContent = cnt;
+  document.getElementById('inbox-badge').style.display = cnt>0?'inline':'none';
+}
+function filterInbox(f, el) {
+  inboxFilter = f;
+  document.querySelectorAll('#screen-inbox .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderInbox();
+}
+function renderInbox() {
+  let items = state.inbox;
+  if(inboxFilter==='unread') items = items.filter(i=>!i.processed);
+  if(inboxFilter==='done') items = items.filter(i=>i.processed);
+  const html = items.map(i=>`
+    <div class="inbox-item ${i.processed?'processed':'unread'}" id="inbox-${i.id}">
+      <div class="inbox-meta">
+        <div class="inbox-from">Šéf</div>
+        ${!i.processed?'<span class="inbox-new-badge">NOVÉ</span>':''}
+        <span class="inbox-time">${i.time}</span>
+      </div>
+      <div class="inbox-text">${esc(i.text)}</div>
+      ${i.hasPhoto?`<div class="inbox-photo"><div class="inbox-thumb">📷</div><div class="inbox-thumb" style="font-size:11px;color:var(--text3)">foto.jpg</div></div>`:''}
+      ${i.clientHint?`<div style="font-size:11px;color:var(--text2);margin-bottom:8px">👤 Zmínka: <b>${esc(i.clientHint)}</b></div>`:''}
+      ${i.deadline?`<div style="font-size:11px;color:var(--amber);margin-bottom:8px">📅 Deadline: ${i.deadline}</div>`:''}
+      ${!i.processed?`
+      <div class="inbox-actions">
+        <select class="inbox-select" id="assign-${i.id}">
+          <option value="">Přiřadit klientovi...</option>
+          ${state.clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
+        </select>
+        <button class="btn btn-sm" onclick="inboxToTask(${i.id})">→ Přidat jako úkol</button>
+        <button class="btn btn-sm btn-primary" onclick="processInbox(${i.id})">Zpracovat ✓</button>
+      </div>`:`<div style="font-size:11px;color:var(--text3)">✓ Zpracováno</div>`}
+    </div>`).join('');
+  document.getElementById('inbox-list').innerHTML = html || '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Žádné zprávy</div></div>';
+}
+function processInbox(id) {
+  const i = state.inbox.find(x=>x.id===id);
+  if(i) { i.processed = true; save(); updateBadge(); renderInbox(); renderDashboard(); notify('Úkol označen jako zpracovaný'); }
+}
+function inboxToTask(id) {
+  const i = state.inbox.find(x=>x.id===id);
+  if(!i) return;
+  const assignId = parseInt(document.getElementById('assign-'+id)?.value)||0;
+  const t = {id:state.nextId.task++,text:i.text.substring(0,100),prio:'amber',date:i.deadline||today(),done:false,clientId:assignId};
+  state.tasks.push(t);
+  i.processed = true;
+  save(); updateBadge(); renderInbox(); notify('Přidáno do úkolů');
+}
+
+// ─── CLIENTS ─────────────────────────────────────────────────────────────────
+function renderClients() {
+  const q = (document.getElementById('client-search')?.value||'').toLowerCase();
+  let list = state.clients;
+  if(q) list = list.filter(c=>c.name.toLowerCase().includes(q)||c.phone.includes(q)||(c.email||'').toLowerCase().includes(q));
+  const colors = ['av-g','av-b','av-p','av-r','av-a'];
+  const html = list.map((c,idx)=>`<tr>
+    <td><div class="client-name-cell"><div class="avatar ${colors[idx%5]}">${initials(c.name)}</div><div><div class="client-name">${esc(c.name)}</div><div class="client-sub">${esc(c.email||'—')}</div></div></div></td>
+    <td style="font-family:'DM Mono',monospace;font-size:12px">${esc(c.phone)}</td>
+    <td><span class="tag tag-${c.type==='kupující'?'buy':c.type==='prodávající'?'sell':'both'}">${c.type}</span></td>
+    <td style="max-width:200px;font-size:12px;color:var(--text2)">${esc(c.note?.substring(0,60)||'—')}${(c.note?.length||0)>60?'…':''}</td>
+    <td style="font-size:12px;color:var(--text3)">${c.source}</td>
+    <td><button class="link-btn" onclick="openClientDetail(${c.id})">Detail →</button></td>
+  </tr>`).join('');
+  document.getElementById('clients-tbody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">Žádní klienti</td></tr>';
+}
+
+function openClientDetail(id) {
+  const c = state.clients.find(x=>x.id===id);
+  if(!c) return;
+  const deals = state.deals.filter(d=>d.clientId===id);
+  const notes = (c.notes||[]);
+  document.getElementById('panelContent').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;margin-top:8px">
+      <div class="avatar av-g" style="width:44px;height:44px;font-size:15px">${initials(c.name)}</div>
+      <div><div class="panel-title">${esc(c.name)}</div><div style="font-size:12px;color:var(--text3)">${c.type}</div></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">Kontakt</div>
+      <div class="info-row"><span class="info-key">Telefon</span><span class="info-val">${esc(c.phone)}</span></div>
+      <div class="info-row"><span class="info-key">Email</span><span class="info-val">${esc(c.email||'—')}</span></div>
+      <div class="info-row"><span class="info-key">Zdroj</span><span class="info-val">${c.source}</span></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">Poznámka</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.5">${esc(c.note||'—')}</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">Obchodní případy (${deals.length})</div>
+      ${deals.map(d=>`<div class="info-row"><span class="info-key">${propName(d.propId)}</span><span class="info-val"><span class="tag tag-active">${stageNames[d.stage]}</span></span></div>`).join('')||'<div style="font-size:13px;color:var(--text3)">Žádné případy</div>'}
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">Zápisky</div>
+      ${notes.map(n=>`<div class="note-entry"><div class="note-date">${n.date}</div>${esc(n.text)}</div>`).join('')}
+      <textarea class="note-input" id="new-note-${id}" placeholder="Přidat zápis..."></textarea>
+      <button class="btn btn-sm btn-primary" style="margin-top:8px;width:100%" onclick="addNote(${id})">Přidat zápis</button>
+    </div>`;
+  document.getElementById('detailPanel').classList.add('open');
+}
+
+function addNote(cid) {
+  const el = document.getElementById('new-note-'+cid);
+  if(!el||!el.value.trim()) return;
+  const c = state.clients.find(x=>x.id===cid);
+  if(!c.notes) c.notes=[];
+  c.notes.unshift({date: new Date().toLocaleDateString('cs-CZ'), text: el.value.trim()});
+  save(); openClientDetail(cid); notify('Zápis přidán');
+}
+
+// ─── PROPERTIES ──────────────────────────────────────────────────────────────
+const propEmojis = {Byt:'🏢',Dům:'🏠',Pozemek:'🌿',Komerční:'🏗️'};
+function filterProps(f, el) {
+  propFilter = f;
+  document.querySelectorAll('#screen-properties .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderProperties();
+}
+function renderProperties() {
+  let list = state.properties;
+  if(propFilter!=='all') list = list.filter(p=>p.status===propFilter);
+  const html = list.map(p=>`
+    <div class="prop-card" onclick="openPropDetail(${p.id})">
+      <div class="prop-img">${propEmojis[p.type]||'🏠'}</div>
+      <div class="prop-body">
+        <div class="prop-addr">${esc(p.addr)}</div>
+        <div class="prop-type">${p.type} · ${p.disp||'—'}</div>
+        <div class="prop-price">${fmt(p.price)} Kč</div>
+        <div class="prop-footer">
+          <span class="tag tag-${p.status==='aktivní'?'active':p.status==='rezervace'?'res':'sold'}">${p.status}</span>
+          <span class="prop-client" style="font-size:11px">${p.owner?clientName(p.owner):'—'}</span>
+        </div>
+      </div>
+    </div>`).join('');
+  document.getElementById('prop-grid').innerHTML = html || '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏠</div><div class="empty-text">Žádné nemovitosti</div></div>';
+}
+function openPropDetail(id) {
+  const p = state.properties.find(x=>x.id===id);
+  if(!p) return;
+  const deals = state.deals.filter(d=>d.propId===id);
+  document.getElementById('panelContent').innerHTML = `
+    <div style="margin-top:8px;margin-bottom:16px;font-size:36px;text-align:center;padding:20px;background:var(--surface2);border-radius:10px">${propEmojis[p.type]||'🏠'}</div>
+    <div class="panel-title">${esc(p.addr)}</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:16px">${p.type} · ${p.disp}</div>
+    <div class="panel-section">
+      <div class="info-row"><span class="info-key">Cena</span><span class="info-val" style="color:var(--accent);font-family:'DM Mono',monospace">${fmt(p.price)} Kč</span></div>
+      <div class="info-row"><span class="info-key">Stav</span><span class="info-val"><span class="tag tag-${p.status==='aktivní'?'active':p.status==='rezervace'?'res':'sold'}">${p.status}</span></span></div>
+      <div class="info-row"><span class="info-key">Majitel</span><span class="info-val">${p.owner?clientName(p.owner):'—'}</span></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">Poznámka</div>
+      <div style="font-size:13px;color:var(--text2)">${esc(p.note||'—')}</div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">Propojené případy (${deals.length})</div>
+      ${deals.map(d=>`<div class="info-row"><span class="info-key">${clientName(d.clientId)}</span><span class="info-val"><span class="tag tag-active">${stageNames[d.stage]}</span></span></div>`).join('')||'<div style="font-size:13px;color:var(--text3)">Žádné</div>'}
+    </div>`;
+  document.getElementById('detailPanel').classList.add('open');
+}
+
+// ─── PIPELINE ─────────────────────────────────────────────────────────────────
+const stageNames = ['Nový kontakt','Schůzka','Aktivní hledání','Nabídka','Rezervace','Smlouva / Podpis'];
+const stageClasses = ['ph1','ph2','ph3','ph4','ph5','ph6'];
+function renderPipeline() {
+  const html = stageNames.map((s,i)=>{
+    const deals = state.deals.filter(d=>d.stage===i);
+    return `<div class="pipeline-col">
+      <div class="pipe-header ${stageClasses[i]}">${s}<br><span style="font-size:10px;opacity:0.7">${deals.length} případ${deals.length===1?'':'y'}</span></div>
+      <div class="pipe-body">
+        ${deals.map(d=>`<div class="deal-card" onclick="openDealDetail(${d.id})">
+          <div class="deal-name">${esc(clientName(d.clientId))}</div>
+          <div class="deal-prop">${esc(propName(d.propId))}</div>
+          ${d.commission?`<div class="deal-price">${fmt(d.commission)} Kč</div>`:''}
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('pipeline-board').innerHTML = html;
+}
+function openDealDetail(id) {
+  const d = state.deals.find(x=>x.id===id);
+  if(!d) return;
+  document.getElementById('panelContent').innerHTML = `
+    <div class="panel-title" style="margin-top:8px">${esc(clientName(d.clientId))}</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:16px">${esc(propName(d.propId))}</div>
+    <div class="panel-section">
+      <div class="info-row"><span class="info-key">Fáze</span><span class="info-val"><span class="tag tag-active">${stageNames[d.stage]}</span></span></div>
+      <div class="info-row"><span class="info-key">Provize</span><span class="info-val" style="font-family:'DM Mono',monospace;color:var(--accent)">${d.commission?fmt(d.commission)+' Kč':'—'}</span></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">Posunout fázi</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${stageNames.map((s,i)=>`<button class="btn btn-sm ${i===d.stage?'btn-primary':''}" onclick="moveDeal(${d.id},${i})">${s}</button>`).join('')}
+      </div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">Poznámka</div>
+      <div style="font-size:13px;color:var(--text2)">${esc(d.note||'—')}</div>
+    </div>`;
+  document.getElementById('detailPanel').classList.add('open');
+}
+function moveDeal(id, stage) {
+  const d = state.deals.find(x=>x.id===id);
+  if(d) { d.stage = stage; save(); openDealDetail(id); renderPipeline(); notify(`Přesunuto: ${stageNames[stage]}`); }
+}
+
+// ─── TASKS ────────────────────────────────────────────────────────────────────
+function filterTasks(f, el) {
+  taskFilter = f;
+  document.querySelectorAll('#screen-tasks .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderTasks();
+}
+function renderTasks() {
+  let list = state.tasks;
+  if(taskFilter==='done') list = list.filter(t=>t.done);
+  else if(taskFilter==='all') list = list.filter(t=>!t.done);
+  else list = list.filter(t=>!t.done && t.prio===taskFilter);
+  list = list.sort((a,b)=>a.date>b.date?1:-1);
+  const html = list.map(t=>`
+    <div class="task-item" style="${t.done?'opacity:0.5':''}">
+      <div class="task-check ${t.done?'checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
+      <div class="task-dot dot-${t.prio}" style="${t.done?'opacity:0':''}"></div>
+      <div class="task-text ${t.done?'task-done':''}">${esc(t.text)}</div>
+      ${t.clientId?`<span class="task-client">${clientName(t.clientId)}</span>`:''}
+      <span class="task-date">${t.date}</span>
+    </div>`).join('');
+  document.getElementById('tasks-list').innerHTML = html || '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">Žádné úkoly v tomto filtru</div>';
+}
+function toggleTask(id) {
+  const t = state.tasks.find(x=>x.id===id);
+  if(t) { t.done = !t.done; save(); renderTasks(); renderDashboard(); }
+}
+
+// ─── FINANCE ─────────────────────────────────────────────────────────────────
+function renderFinance() {
+  const pending = state.deals.filter(d=>d.stage<5&&d.commission>0);
+  const done = state.deals.filter(d=>d.stage===5&&d.commission>0);
+  const pendSum = pending.reduce((s,d)=>s+d.commission,0);
+  const doneSum = done.reduce((s,d)=>s+d.commission,0);
+  document.getElementById('fin-metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-label">Celková pipeline</div><div class="metric-value">${fmt(pendSum+doneSum)}</div><div class="metric-sub">Kč celkem</div></div>
+    <div class="metric-card" style="background:var(--amber-light);border-color:#F5D5B0"><div class="metric-label">Čeká na příjem</div><div class="metric-value" style="color:var(--amber)">${fmt(pendSum)}</div><div class="metric-sub">Kč</div></div>
+    <div class="metric-card accent"><div class="metric-label">Uzavřeno</div><div class="metric-value">${fmt(doneSum)}</div><div class="metric-sub">Kč</div></div>`;
+  const rows = [...state.deals.filter(d=>d.commission>0)].sort((a,b)=>b.commission-a.commission);
+  document.getElementById('fin-list').innerHTML = rows.map(d=>`
+    <div class="finance-row">
+      <div><div class="fin-name">${esc(clientName(d.clientId))}</div><div class="fin-prop">${esc(propName(d.propId))}</div></div>
+      <span class="tag ${d.stage===5?'tag-done':'tag-pend'}">${stageNames[d.stage]}</span>
+      <div class="fin-amount ${d.stage===5?'fin-done':'fin-pending'}">${fmt(d.commission)} Kč</div>
+    </div>`).join('') || '<div style="padding:20px;text-align:center;color:var(--text3)">Žádné provize</div>';
+}
+
+// ─── MODALS ───────────────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModalProp() {
+  const sel = document.getElementById('p-owner');
+  sel.innerHTML = '<option value="">— nevybráno —</option>'+state.clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  openModal('modal-prop');
+}
+function openModalDeal() {
+  document.getElementById('d-client').innerHTML = '<option value="">— vyberte klienta —</option>'+state.clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('d-prop').innerHTML = '<option value="">— vyberte nemovitost —</option>'+state.properties.map(p=>`<option value="${p.id}">${p.addr}</option>`).join('');
+  openModal('modal-deal');
+}
+function openModalTask() {
+  document.getElementById('t-client').innerHTML = '<option value="">— obecný úkol —</option>'+state.clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('t-date').value = today();
+  openModal('modal-task');
+}
+
+function saveClient() {
+  const name = document.getElementById('c-name').value.trim();
+  const phone = document.getElementById('c-phone').value.trim();
+  if(!name||!phone) { alert('Vyplň jméno a telefon'); return; }
+  state.clients.push({id:state.nextId.client++,name,phone,email:document.getElementById('c-email').value.trim(),type:document.getElementById('c-type').value,source:document.getElementById('c-source').value,note:document.getElementById('c-note').value.trim(),notes:[]});
+  save(); closeModal('modal-client'); renderClients(); notify('Klient přidán');
+  ['c-name','c-phone','c-email','c-note'].forEach(id=>document.getElementById(id).value='');
+}
+function saveProperty() {
+  const addr = document.getElementById('p-addr').value.trim();
+  if(!addr) { alert('Vyplň adresu'); return; }
+  state.properties.push({id:state.nextId.prop++,addr,type:document.getElementById('p-type').value,disp:document.getElementById('p-disp').value.trim(),price:parseInt(document.getElementById('p-price').value)||0,status:document.getElementById('p-status').value,owner:parseInt(document.getElementById('p-owner').value)||0,note:document.getElementById('p-note').value.trim()});
+  save(); closeModal('modal-prop'); renderProperties(); notify('Nemovitost přidána');
+}
+function saveDeal() {
+  const cid = parseInt(document.getElementById('d-client').value);
+  const pid = parseInt(document.getElementById('d-prop').value);
+  if(!cid||!pid) { alert('Vyber klienta a nemovitost'); return; }
+  state.deals.push({id:state.nextId.deal++,clientId:cid,propId:pid,stage:parseInt(document.getElementById('d-stage').value),commission:parseInt(document.getElementById('d-comm').value)||0,note:document.getElementById('d-note').value.trim(),notes:[]});
+  save(); closeModal('modal-deal'); renderPipeline(); notify('Případ přidán');
+}
+function saveTask() {
+  const text = document.getElementById('t-text').value.trim();
+  if(!text) { alert('Vyplň popis úkolu'); return; }
+  state.tasks.push({id:state.nextId.task++,text,prio:document.getElementById('t-prio').value,date:document.getElementById('t-date').value||today(),done:false,clientId:parseInt(document.getElementById('t-client').value)||0});
+  save(); closeModal('modal-task'); renderTasks(); renderDashboard(); notify('Úkol přidán');
+  document.getElementById('t-text').value='';
+}
+
+// ─── BOSS PIN ─────────────────────────────────────────────────────────────────
+function openBossPin() { document.getElementById('pinPage').classList.add('open'); }
+function checkPin() {
+  const pin = document.getElementById('pinInput').value;
+  if(pin==='1234') {
+    document.getElementById('pinPage').classList.remove('open');
+    document.getElementById('pinInput').value='';
+    document.getElementById('bossPage').classList.add('open');
+  } else { alert('Nesprávný PIN'); document.getElementById('pinInput').value=''; }
+}
+let bossFiles = [];
+function handleBossFiles(input) {
+  bossFiles = Array.from(input.files);
+  document.getElementById('boss-file-list').innerHTML = bossFiles.map(f=>`<div class="file-thumb">📷 ${f.name}</div>`).join('');
+}
+function submitBossTask() {
+  const text = document.getElementById('boss-text').value.trim();
+  if(!text) { alert('Napiš zprávu'); return; }
+  const now = new Date();
+  const time = 'dnes '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  state.inbox.push({id:state.nextId.inbox++,text,time,hasPhoto:bossFiles.length>0,processed:false,clientHint:document.getElementById('boss-client').value.trim(),deadline:document.getElementById('boss-deadline').value});
+  save(); updateBadge();
+  document.getElementById('boss-text').value='';
+  document.getElementById('boss-client').value='';
+  document.getElementById('boss-deadline').value='';
+  document.getElementById('boss-file-list').innerHTML='';
+  bossFiles=[];
+  document.getElementById('bossPage').classList.remove('open');
+  notify('Úkol odeslán asistentovi ✓');
+}
+
+// ─── PANEL ────────────────────────────────────────────────────────────────────
+function closePanel() { document.getElementById('detailPanel').classList.remove('open'); }
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function today() { return new Date().toISOString().split('T')[0]; }
+function fmt(n) { return (n||0).toLocaleString('cs-CZ'); }
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function initials(name) { return name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase(); }
+function clientName(id) { const c = state.clients.find(x=>x.id===id); return c?c.name:'—'; }
+function propName(id) { const p = state.properties.find(x=>x.id===id); return p?p.addr:'—'; }
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+load();
+renderDashboard();
+</script>
+</body>
+</html>
