@@ -194,7 +194,7 @@ function fileToBase64(file) {
   });
 }
 
-function resizeImage(file, maxWidth=800) {
+function resizeImage(file, maxWidth=600) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = e => {
@@ -205,7 +205,7 @@ function resizeImage(file, maxWidth=800) {
         canvas.width = img.width * scale;
         canvas.height = img.height * scale;
         canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.7));
+        resolve(canvas.toDataURL('image/jpeg', 0.4));
       };
       img.src = e.target.result;
     };
@@ -242,6 +242,13 @@ window.submitTask = async function() {
     docData.photoCount = Math.min(selectedFiles.length, 4);
 
     btn.textContent = 'Odesílám...';
+
+    // Check total size
+    const docJson = JSON.stringify(docData);
+    if(docJson.length > 900000) {
+      throw new Error('Fotky jsou příliš velké. Zkus poslat méně fotek nebo jen zprávu bez fotek.');
+    }
+
     await addDoc(collection(db, 'inbox'), docData);
     document.getElementById('syncBar').classList.remove('active');
     document.getElementById('formView').style.display = 'none';
