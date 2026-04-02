@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Úkoly pro asistenta</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F3EE; --surface: #FDFCFA; --border: #E2DDD6; --border2: #D0C9BF;
+  --text: #1A1814; --text2: #6B6560; --text3: #A09890;
+  --accent: #2D5016; --accent-light: #EBF2E3; --accent-mid: #4A7C2A;
+  --red: #C0392B; --radius-lg: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
+}
+.wrap { width: 100%; max-width: 480px; }
+.header { margin-bottom: 28px; }
+.logo { font-size: 13px; font-weight: 600; color: var(--text3); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 10px; }
+h1 { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1.2; margin-bottom: 6px; }
+.sub { font-size: 14px; color: var(--text2); line-height: 1.5; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; margin-bottom: 16px; }
+.form-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 8px; display: block; }
+textarea {
+  width: 100%; border: 1.5px solid var(--border2); border-radius: 10px;
+  background: var(--bg); color: var(--text); font-size: 16px;
+  font-family: 'DM Sans', sans-serif; padding: 14px;
+  resize: none; outline: none; min-height: 140px; line-height: 1.5;
+  transition: border 0.15s;
+}
+textarea:focus { border-color: var(--accent); }
+textarea::placeholder { color: var(--text3); }
+input[type=text], input[type=date] {
+  width: 100%; border: 1.5px solid var(--border2); border-radius: 10px;
+  background: var(--bg); color: var(--text); font-size: 15px;
+  font-family: 'DM Sans', sans-serif; padding: 12px 14px;
+  outline: none; transition: border 0.15s; margin-top: 0;
+}
+input:focus { border-color: var(--accent); }
+input::placeholder { color: var(--text3); }
+.optional-toggle { font-size: 13px; color: var(--text3); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; user-select: none; }
+.optional-toggle:hover { color: var(--text2); }
+.optional-fields { margin-top: 14px; display: none; }
+.optional-fields.open { display: block; }
+.form-group { margin-bottom: 12px; }
+.file-area {
+  border: 2px dashed var(--border2); border-radius: 10px;
+  padding: 22px 16px; text-align: center; cursor: pointer;
+  color: var(--text3); font-size: 14px; transition: all 0.15s;
+  background: var(--bg);
+}
+.file-area:hover, .file-area.dragover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.file-area-icon { font-size: 28px; margin-bottom: 8px; }
+.file-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.file-chip { background: var(--accent-light); border: 1px solid #C5DBA8; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+.file-chip button { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 14px; padding: 0; line-height: 1; }
+.submit-btn {
+  width: 100%; padding: 16px; background: var(--accent); color: #fff;
+  border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s;
+  margin-top: 8px; letter-spacing: -0.2px;
+}
+.submit-btn:hover { background: var(--accent-mid); }
+.submit-btn:active { transform: scale(0.98); }
+.submit-btn:disabled { background: var(--text3); cursor: not-allowed; }
+.char-count { font-size: 11px; color: var(--text3); text-align: right; margin-top: 6px; font-family: 'DM Mono', monospace; }
+
+/* SUCCESS */
+.success { display: none; text-align: center; padding: 40px 20px; }
+.success.show { display: block; }
+.success-icon { font-size: 56px; margin-bottom: 16px; }
+.success-title { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.success-sub { font-size: 14px; color: var(--text2); margin-bottom: 28px; line-height: 1.5; }
+.again-btn { padding: 13px 28px; background: none; border: 1.5px solid var(--border2); border-radius: 10px; font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; color: var(--text); transition: all 0.15s; }
+.again-btn:hover { background: var(--surface); }
+
+/* SYNCING indicator */
+.syncing-bar { height: 3px; background: var(--accent-light); border-radius: 2px; overflow: hidden; margin-bottom: 20px; }
+.syncing-bar-inner { height: 100%; width: 30%; background: var(--accent); border-radius: 2px; animation: sliding 1.2s ease-in-out infinite; display: none; }
+.syncing-bar-inner.active { display: block; }
+@keyframes sliding { 0%{transform:translateX(-100%)} 100%{transform:translateX(400%)} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="syncing-bar"><div class="syncing-bar-inner" id="syncBar"></div></div>
+
+  <div id="formView">
+    <div class="header">
+      <div class="logo">RealityCRM</div>
+      <h1>Napište úkol pro asistenta</h1>
+      <div class="sub">Stačí napsat — asistent si zprávu zpracuje.</div>
+    </div>
+
+    <div class="card">
+      <label class="form-label">Zpráva *</label>
+      <textarea id="msgText" placeholder="Zavolej tomu páru z pondělí, chtěli vědět o bytě na Mánesově..." oninput="updateChar()"></textarea>
+      <div class="char-count"><span id="charCount">0</span> znaků</div>
+
+      <div class="optional-toggle" onclick="toggleOptional()">
+        <span id="toggleArrow">▸</span> Přidat foto nebo upřesnit (nepovinné)
+      </div>
+      <div class="optional-fields" id="optionalFields">
+        <div class="form-group" style="margin-top:14px">
+          <label class="form-label">Fotky (smlouva, nemovitost, vizitka...)</label>
+          <div class="file-area" id="fileArea" onclick="document.getElementById('fileInput').click()">
+            <div class="file-area-icon">📷</div>
+            <div>Klikni nebo vyber fotky</div>
+            <div style="font-size:12px;margin-top:4px">JPG, PNG, HEIC</div>
+          </div>
+          <input type="file" id="fileInput" multiple accept="image/*" style="display:none" onchange="handleFiles(this)">
+          <div class="file-list" id="fileList"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jméno klienta (pokud víš)</label>
+          <input type="text" id="clientHint" placeholder="Např. Novákovi, Horák...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Deadline (pokud je důležité)</label>
+          <input type="date" id="deadline">
+        </div>
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitTask()">Odeslat asistentovi →</button>
+  </div>
+
+  <div class="success" id="successView">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Odesláno!</div>
+    <div class="success-sub">Asistent zprávu uvidí a zpracuje ji.</div>
+    <button class="again-btn" onclick="resetForm()">Přidat další úkol</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCqnElwQI-K4tU7KkhG3jNTV6J2C0bfCPs",
+  authDomain: "reality-crm.firebaseapp.com",
+  projectId: "reality-crm",
+  storageBucket: "reality-crm.firebasestorage.app",
+  messagingSenderId: "745270579541",
+  appId: "1:745270579541:web:ad32e0e4782ee86e5f1fdc"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let selectedFiles = [];
+
+window.updateChar = function() {
+  const t = document.getElementById('msgText').value;
+  document.getElementById('charCount').textContent = t.length;
+};
+
+window.toggleOptional = function() {
+  const f = document.getElementById('optionalFields');
+  const a = document.getElementById('toggleArrow');
+  f.classList.toggle('open');
+  a.textContent = f.classList.contains('open') ? '▾' : '▸';
+};
+
+window.handleFiles = function(input) {
+  selectedFiles = Array.from(input.files);
+  document.getElementById('fileList').innerHTML = selectedFiles.map((f,i)=>`
+    <div class="file-chip">📷 ${f.name} <button onclick="removeFile(${i})">×</button></div>`).join('');
+};
+
+window.removeFile = function(i) {
+  selectedFiles.splice(i,1);
+  document.getElementById('fileList').innerHTML = selectedFiles.map((f,j)=>`
+    <div class="file-chip">📷 ${f.name} <button onclick="removeFile(${j})">×</button></div>`).join('');
+};
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function resizeImage(file, maxWidth=600) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1, maxWidth / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.4));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+window.submitTask = async function() {
+  const text = document.getElementById('msgText').value.trim();
+  if(!text) { document.getElementById('msgText').focus(); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  document.getElementById('syncBar').classList.add('active');
+
+  const now = new Date();
+  const time = 'dnes ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+  const id = Date.now().toString(36) + Math.random().toString(36).substr(2,5);
+
+  try {
+    const docData = {
+      id, text, time,
+      hasPhoto: selectedFiles.length > 0,
+      clientHint: document.getElementById('clientHint').value.trim(),
+      deadline: document.getElementById('deadline').value,
+      processed: false,
+      _ts: serverTimestamp()
+    };
+
+    for(let i = 0; i < Math.min(selectedFiles.length, 4); i++) {
+      btn.textContent = `Zpracovávám foto ${i+1}/${selectedFiles.length}...`;
+      docData['photo' + i] = await resizeImage(selectedFiles[i]);
+    }
+    docData.photoCount = Math.min(selectedFiles.length, 4);
+
+    btn.textContent = 'Odesílám...';
+
+    // Check total size
+    const docJson = JSON.stringify(docData);
+    if(docJson.length > 900000) {
+      throw new Error('Fotky jsou příliš velké. Zkus poslat méně fotek nebo jen zprávu bez fotek.');
+    }
+
+    await addDoc(collection(db, 'inbox'), docData);
+    document.getElementById('syncBar').classList.remove('active');
+    document.getElementById('formView').style.display = 'none';
+    document.getElementById('successView').classList.add('show');
+  } catch(e) {
+    console.error(e);
+    document.getElementById('syncBar').classList.remove('active');
+    btn.disabled = false;
+    btn.textContent = 'Odeslat asistentovi →';
+    alert('Chyba: ' + e.message);
+  }
+};
+
+window.resetForm = function() {
+  document.getElementById('msgText').value = '';
+  document.getElementById('clientHint').value = '';
+  document.getElementById('deadline').value = '';
+  document.getElementById('fileList').innerHTML = '';
+  document.getElementById('charCount').textContent = '0';
+  selectedFiles = [];
+  document.getElementById('optionalFields').classList.remove('open');
+  document.getElementById('toggleArrow').textContent = '▸';
+  document.getElementById('successView').classList.remove('show');
+  document.getElementById('formView').style.display = 'block';
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('submitBtn').textContent = 'Odeslat asistentovi →';
+};
+</script>
+</body>
+</html>
