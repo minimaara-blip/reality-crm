@@ -146,6 +146,7 @@ input::placeholder { color: var(--text3); }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCqnElwQI-K4tU7KkhG3jNTV6J2C0bfCPs",
@@ -158,6 +159,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 let selectedFiles = [];
 
@@ -191,7 +193,7 @@ window.submitTask = async function() {
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
-  btn.textContent = 'Odesílám...';
+  btn.textContent = 'Nahrávám...';
   document.getElementById('syncBar').classList.add('active');
 
   const now = new Date();
@@ -199,11 +201,24 @@ window.submitTask = async function() {
   const id = Date.now().toString(36) + Math.random().toString(36).substr(2,5);
 
   try {
+    // Upload photos to Storage
+    const photoURLs = [];
+    for(let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      btn.textContent = `Nahrávám foto ${i+1}/${selectedFiles.length}...`;
+      const storageRef = ref(storage, `inbox/${id}/${file.name}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      photoURLs.push(url);
+    }
+
+    btn.textContent = 'Odesílám...';
     await addDoc(collection(db, 'inbox'), {
       id,
       text,
       time,
       hasPhoto: selectedFiles.length > 0,
+      photoURLs,
       photoNames: selectedFiles.map(f=>f.name),
       clientHint: document.getElementById('clientHint').value.trim(),
       deadline: document.getElementById('deadline').value,
@@ -214,6 +229,7 @@ window.submitTask = async function() {
     document.getElementById('formView').style.display = 'none';
     document.getElementById('successView').classList.add('show');
   } catch(e) {
+    console.error(e);
     document.getElementById('syncBar').classList.remove('active');
     btn.disabled = false;
     btn.textContent = 'Odeslat asistentovi →';
