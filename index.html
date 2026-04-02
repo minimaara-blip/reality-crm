@@ -572,10 +572,7 @@ function renderInbox() {
         <span class="inbox-time">${i.time||''}</span>
       </div>
       <div class="inbox-text">${esc(i.text)}</div>
-      ${i.hasPhoto && i.photos && i.photos.length > 0 ? `
-        <div class="inbox-photo">
-          ${i.photos.map(p=>`<img src="${p.data}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer;" onclick="window.open('${p.data}','_blank')">`).join('')}
-        </div>` : i.hasPhoto ? '<div class="inbox-photo"><div class="inbox-thumb">📷</div></div>' : ''}
+      ${i.hasPhoto ? `<div class="inbox-photo">${[0,1,2,3].filter(n=>i['photo'+n]).map(n=>`<img src="${i['photo'+n]}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer;" onclick="window.open('${i['photo'+n]}','_blank')">`).join('')}</div>` : ''}
       ${i.clientHint?`<div style="font-size:11px;color:var(--text2);margin-bottom:8px">👤 Zmínka: <b>${esc(i.clientHint)}</b></div>`:''}
       ${i.deadline?`<div style="font-size:11px;color:var(--amber);margin-bottom:8px">📅 Deadline: ${i.deadline}</div>`:''}
       ${!i.processed?`

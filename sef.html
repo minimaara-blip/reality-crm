@@ -194,6 +194,25 @@ function fileToBase64(file) {
   });
 }
 
+function resizeImage(file, maxWidth=800) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1, maxWidth / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 window.submitTask = async function() {
   const text = document.getElementById('msgText').value.trim();
   if(!text) { document.getElementById('msgText').focus(); return; }
@@ -207,25 +226,23 @@ window.submitTask = async function() {
   const id = Date.now().toString(36) + Math.random().toString(36).substr(2,5);
 
   try {
-    const photoData = [];
-    for(let i = 0; i < selectedFiles.length; i++) {
-      btn.textContent = `Zpracovávám foto ${i+1}/${selectedFiles.length}...`;
-      const base64 = await fileToBase64(selectedFiles[i]);
-      photoData.push({ name: selectedFiles[i].name, data: base64 });
-    }
-
-    btn.textContent = 'Odesílám...';
-    await addDoc(collection(db, 'inbox'), {
-      id,
-      text,
-      time,
-      hasPhoto: photoData.length > 0,
-      photos: photoData,
+    const docData = {
+      id, text, time,
+      hasPhoto: selectedFiles.length > 0,
       clientHint: document.getElementById('clientHint').value.trim(),
       deadline: document.getElementById('deadline').value,
       processed: false,
       _ts: serverTimestamp()
-    });
+    };
+
+    for(let i = 0; i < Math.min(selectedFiles.length, 4); i++) {
+      btn.textContent = `Zpracovávám foto ${i+1}/${selectedFiles.length}...`;
+      docData['photo' + i] = await resizeImage(selectedFiles[i]);
+    }
+    docData.photoCount = Math.min(selectedFiles.length, 4);
+
+    btn.textContent = 'Odesílám...';
+    await addDoc(collection(db, 'inbox'), docData);
     document.getElementById('syncBar').classList.remove('active');
     document.getElementById('formView').style.display = 'none';
     document.getElementById('successView').classList.add('show');
