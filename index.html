@@ -572,9 +572,9 @@ function renderInbox() {
         <span class="inbox-time">${i.time||''}</span>
       </div>
       <div class="inbox-text">${esc(i.text)}</div>
-      ${i.hasPhoto && i.photoURLs && i.photoURLs.length > 0 ? `
+      ${i.hasPhoto && i.photos && i.photos.length > 0 ? `
         <div class="inbox-photo">
-          ${i.photoURLs.map(url=>`<img src="${url}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer;" onclick="window.open('${url}','_blank')">`).join('')}
+          ${i.photos.map(p=>`<img src="${p.data}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer;" onclick="window.open('${p.data}','_blank')">`).join('')}
         </div>` : i.hasPhoto ? '<div class="inbox-photo"><div class="inbox-thumb">📷</div></div>' : ''}
       ${i.clientHint?`<div style="font-size:11px;color:var(--text2);margin-bottom:8px">👤 Zmínka: <b>${esc(i.clientHint)}</b></div>`:''}
       ${i.deadline?`<div style="font-size:11px;color:var(--amber);margin-bottom:8px">📅 Deadline: ${i.deadline}</div>`:''}
